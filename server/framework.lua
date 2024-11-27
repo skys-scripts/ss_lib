@@ -25,7 +25,7 @@ SS_Core = {
     end,
 
     RegisterCallback = function(name, cb)
-        SS_Log("debug", "^4RegisterCallback ^0[^3"..name.."^0]", resourceName, false, currentLine.."28")
+        SS_Log("debug", "^4RegisterCallback^0] [^3"..name.."^0", resourceName, currentLine.."29")
         if Framework == 'ESX' then
             ESX.RegisterServerCallback(name, cb)
         elseif Framework == 'QB' then
@@ -42,7 +42,7 @@ SS_Core.Player = {
             Wait(500)
             xPlayer = SS_Core.Player.GetFromId(tonumber(src))
         end
-        SS_Log("debug", "^4Server Side - GetSource ^0[^3"..tonumber(src).."^0]", resourceName, false, currentLine.."45")
+        SS_Log("id_debug", "^4Server Side - GetSource^0] [^3"..tonumber(src).."^0", resourceName, currentLine.."46")
         if Framework == 'ESX' then
             return xPlayer.source
         elseif Framework == 'QB' then
@@ -51,7 +51,7 @@ SS_Core.Player = {
     end,
 
     GetFromId = function(src)
-        SS_Log("debug", "^4Server Side - GetFromId ^0[^3"..(src).."^0]", resourceName, false, currentLine.."54")
+        SS_Log("id_debug", "^4Server Side - GetFromId^0] [^3"..(src).."^0", resourceName, currentLine.."55")
         if Framework == 'ESX' then
             return ESX.GetPlayerFromId(src)
         elseif Framework == 'QB' then
@@ -60,8 +60,9 @@ SS_Core.Player = {
     end,
 
     GetIdentifier = function(src)
-        SS_Log("debug", "^4Server Side - GetIdentifier ^0[^3"..tonumber(src).."^0]", resourceName, false, currentLine.."63")
+        SS_Log("id_debug", "^4Server Side - GetIdentifier^0] [^3"..tonumber(src).."^0", resourceName, currentLine.."64")
         local Player = SS_Core.Player.GetFromId(tonumber(src))
+        if Player == nil then return end
         if Framework == 'ESX' then
             return Player.identifier
         elseif Framework == 'QB' then
@@ -70,7 +71,7 @@ SS_Core.Player = {
     end,
 
     GetCitizenName = function(src)
-        SS_Log("debug", "^4Server Side - GetCitizenName ^0[^3"..tonumber(src).."^0]", resourceName, false, currentLine.."73")
+        SS_Log("id_debug", "^4GetCitizenName^0] [^3"..tonumber(src).."^0", resourceName, currentLine.."74")
         local Player = SS_Core.Player.GetFromId(tonumber(src))
         if Framework == 'ESX' then
             return Player.getName()
@@ -80,8 +81,7 @@ SS_Core.Player = {
     end,
 
     AddItem = function(src, item, amount)
-        local src = SS_Core.Player.GetSource(src)
-        local Player = SS_Core.Player.GetFromId(src)
+        local Player = SS_Core.Player.GetFromId(tonumber(src))
         if Framework == 'ESX' then 
             Player.addInventoryItem(item, amount)
         elseif Framework == 'QB' then
@@ -90,11 +90,10 @@ SS_Core.Player = {
                     worth = amount
                 }
                 Player.Functions.AddItem(item, 1, false, meta)
-                TriggerClientEvent('inventory:client:ItemBox', src,QBCore.Shared.Items[item], "add")
             elseif item ~= 'markedbills' then
                 Player.Functions.AddItem(item, amount)
-                TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[i], "add")
             end
+            TriggerClientEvent('inventory:client:ItemBox', src,QBCore.Shared.Items[item], "add")
         end
     end,
 
@@ -145,13 +144,13 @@ SS_Core.Player = {
 
     GetMoney = function(src, account)
         local player = SS_Core.Player.GetFromId(tonumber(src))
-        if ESX ~= nil then
+        if Framework == 'ESX' then
             if account == nil then
                 return player.getMoney()
             else
                 return player.getAccount(account).money
             end
-        elseif QBCore ~= nil then
+        elseif Framework == 'QB' then
             if account == nil then
                 return player.Functions.GetMoney("cash")
             else
@@ -162,10 +161,10 @@ SS_Core.Player = {
 
     IsAdmin = function(src)
         local permissions = Config.AdminOptions.ranks
-        SS_Log("debug", "^4Admin ranks able to use commands^0: ^3"..json.encode(permissions).."^0", resourceName, false, currentLine.."83")
+        SS_Log("debug", "^4Admin command ranks^0] [^3"..table.concat(permissions, "^0,^3").."^0", resourceName, currentLine.."166")
         for k,v in pairs(permissions) do
             if IsPlayerAceAllowed(src, v) then
-                SS_Log("debug", "^4Admin Perm Granted ^0[^3"..src.."^0] ^4Level:^0 [^3"..v.."^0]", resourceName, false, currentLine.."86")
+                SS_Log("debug", "^4Command perm granted to^0] [^3"..src.."^0] [^4Perm level^0] [^3"..v.."^0", resourceName, currentLine.."169")
                 return true
             end
         end

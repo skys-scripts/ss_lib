@@ -1,15 +1,13 @@
 ESX = nil
 QBCore = nil
+local resourceName = GetCurrentResourceName()
+local currentLine = "CLNT>FRAME #"
 
 if Framework == 'ESX' then
     ESX = exports['es_extended']:getSharedObject()
 elseif Framework == 'QB' then
     QBCore = exports['qb-core']:GetCoreObject()
 end
-
-local resourceName = GetCurrentResourceName()
-
-local currentLine = "CLNT>FRAME #"
 
 SS_Core = {
 
@@ -39,7 +37,7 @@ SS_Core = {
         elseif Framework == 'QB' then
             QBCore.Functions.SpawnVehicle(model, cb, coords, networked)
         end
-        SS_Log("debug","^4SpawnVehicle "..tostring(model), resourceName, true, currentLine.."42")
+        SS_Log("debug","^4SpawnVehicle^0] [^3"..tostring(model).."^0", resourceName, currentLine.."40")
 	end,
 
     DeleteVehicle = function(vehicle)
@@ -48,17 +46,17 @@ SS_Core = {
         elseif Framework == 'QB' then
             QBCore.Functions.DeleteVehicle(vehicle)
         end
-        SS_Log("debug","^4DeleteVehicle "..tostring(vehicle), resourceName, true, currentLine.."42")
+        SS_Log("debug","^4DeleteVehicle^0] [^3"..tostring(vehicle)"^0", resourceName, currentLine.."49")
     end,
 
     TriggerCallback = function(name, cb, ...)
-        SS_Log("debug","^4TriggerCallback ^0[^3"..name.."^0]", resourceName, true, currentLine.."53")
+        SS_Log("debug","^4TriggerCallback ^0[^3"..name.."^0", resourceName, currentLine.."53")
         if Framework == 'ESX' then
             ESX.TriggerServerCallback(name, cb, ...)
         elseif Framework == 'QB' then
             QBCore.Functions.TriggerCallback(name, cb, ...)
         end
-        SS_Log("debug","^4TriggerCallback Finished ^0[^3"..name.."^0]", resourceName, true, currentLine.."59")
+        SS_Log("debug","^4TriggerCallback Finished ^0[^3"..name.."^0", resourceName, currentLine.."59")
     end,
 
     SetPlayerJob = function()
@@ -81,7 +79,7 @@ SS_Core = {
             table.onDuty  = SS_Core.PlayerData.job.onduty or false
             --table.isPolice = Config.PoliceJobs[SS_Core.PlayerData.job.name] or false
         end
-        SS_Log("debug","^4Your Job: [^0"..table.label.."^4] Title: [^0"..table.name.."^4] Duty: [^0"..tostring(table.onDuty).."^4] Grade: [^0"..table.grade.."^4]^0", resourceName, true, currentLine.."83")
+        SS_Log("debug","^4Job^0] [^3"..table.label.."^0] [^4Title^0] [^3"..table.name.."^0] [^4Duty^0] [^3"..tostring(table.onDuty).."^0] [^4Grade^0] [^3"..table.grade.."^0]", resourceName, currentLine.."82")
         SS_Core.PlayerJob = table
     end,
 
@@ -97,7 +95,7 @@ SS_Core = {
         end
     end,
 
-    GetPlayerMoney = function(cb, account) -- Needs more testing
+    GetPlayerMoney = function(cb, account) -- Needs more testing???
         SS_Core.TriggerCallback('ss-truckjob:server:getMoney', function(money)
             cb(money)
         end, account or nil)
@@ -108,38 +106,48 @@ SS_Core = {
     end,
 
     Notification = function(data)
-        if Config.UseFrameworkNotification then
-            if ESX ~= nil then
-                ESX.ShowNotification(data.message, false, true, nil)
-            elseif QBCore ~= nil then
-                QBCore.Functions.Notify(data.message)
+        if Config.Notification.enable then
+            if Config.Notification.notifytype == 'qb' or Config.Notification.notifytype == 'esx' then
+                if ESX ~= nil then
+                    ESX.ShowNotification(data.message, false, true, nil)
+                elseif QBCore ~= nil then
+                    QBCore.Functions.Notify(data.message)
+                end
+            elseif Config.Notification.notifytype == 'ox' then
+                SS_Utils.Notification(data)
+            elseif Config.Notification.notifytype == 'okok' then
+                SS_Utils.Notification(data)
             end
-        else
-            SS_Utils.Notification(data)
         end
     end,
 
-    SetFuelAmount = function(vehicle)
-    local fuelAmount = 100.0
-    SS_Log("debug","^4SetFuelAmount ^0[^3" ..vehicle.."^0]", resourceName, true, currentLine.."136")
+    SetFuelAmount = function(vehicle,fuelAmount)
         if Config.Fuel == "LegacyFuel" then
             exports['LegacyFuel']:SetFuel(vehicle, fuelAmount)
         elseif Config.Fuel == "cdn-fuel" then
             exports['cdn-fuel']:SetFuel(vehicle, fuelAmount)
         elseif Config.Fuel == "ps-fuel" then
             exports['ps-fuel']:SetFuel(vehicle, fuelAmount)
+        elseif Config.Fuel == "okok" then
+            exports['okokGasStation']:SetFuel(vehicle, fuelAmount)
+        elseif Config.Fuel == "custom" then
+            -- Add custom set fuel function here
         end
+        SS_Log("debug","^4SetFuelAmount^0] [^3Vehicle - "..vehicle.." ^0] [^3Fuel Amount - "..fuelAmount.."^0]", resourceName, currentLine.."127")
     end,
 
     SetOwner = function(vehicle)
         local plate = string.gsub(GetVehicleNumberPlateText(vehicle), '^%s*(.-)%s*$', '%1')
-        SS_Log("debug","^4SetOwner ^0[^3" ..plate.."^0]", resourceName, true, currentLine.."136")
+        local model = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
+        SS_Log("debug","^4Set Owner^0] [^4Vehicle Plate^0] [^3 "..plate.."^0] [^4Vehicle Model^0] [^3 "..model.."^0", resourceName, currentLine.."133")
         if Framework == "QB" then
             if Config.Keys == "default" then
-            TriggerEvent("vehiclekeys:client:SetOwner",plate) -- replace your vehicle key option here. (setowner)
+                TriggerEvent("vehiclekeys:client:SetOwner",plate) -- replace your vehicle key option here. (setowner)
             end
+        elseif Config.Keys == "qs" then
+            exports['qs-vehiclekeys']:GiveKeys(plate, model, true)
         elseif Config.Keys == "default" and Framework == "ESX" then
-        -- add custom TriggerEvent
+            -- add custom TriggerEvent
         end
     end
 }

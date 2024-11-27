@@ -35,7 +35,7 @@ SS_Utils = {
 	end,
 
     AddLocalEntity = function(entity, args)
-		SS_Log("debug", "^4Target System^0] [^3"..Config.TargetSystem.."^0", resourceName, true, currentLine.."38")
+		SS_Log("debug", "^4Target System^0] [^3"..Config.TargetSystem.."^0", resourceName,  currentLine.."38")
 		if Config.TargetSystem == 'ox-target' then
 			exports['ox_target']:addLocalEntity(entity, args.options)
 		elseif Config.TargetSystem == 'q-target' then
@@ -50,7 +50,7 @@ SS_Utils = {
 					canInteract = args.canInteract,
 				})
 			else
-				SS_Log("warn", "[Get ox_target instead of this outdated target system]", resourceName, true)
+				SS_Log("warn", "[Get ox_target instead of this outdated target system", resourceName, true)
 			end
 		elseif Config.TargetSystem == 'qb-target' then
 			local newOptions = {}
@@ -99,7 +99,51 @@ SS_Utils = {
 				Wait(0)
 			end
 		end
-        SS_Log("debug","^4Loaded Model^0", resourceName, true, currentLine.."101")
+        SS_Log("debug","^4Loaded Model^0] [^3"..model.."^0", resourceName, currentLine.."101")
+	end,
+
+	CreateObject = function(object, coords, heading, cb, networked)
+		networked = networked == nil and true or networked
+		if networked then
+			SS_Core.TriggerCallback('ss_lib:server:createObject', function(networkId)
+				if cb then
+					local obj = NetworkGetEntityFromNetworkId(networkId)
+					local attempts = 0
+					while not DoesEntityExist(obj) do
+						obj = NetworkGetEntityFromNetworkId(networkId)
+						Wait(10)
+						attempts = attempts + 1
+						if attempts > 100 then
+							break
+						end
+					end
+					cb(obj, networkId)
+				end
+			end, object, coords, heading)
+		else 
+			local model = type(object) == 'number' and object or joaat(object)
+			local vector = type(coords) == "vector3" and coords or vec(coords.x, coords.y, coords.z)
+			SS_Utils.LoadModel(model)
+			local obj = CreateObject(model, vector.xyz, networked, false, true)
+			SetEntityRotation(obj, 0, 0, heading, 2, true)
+			if cb then
+				cb(obj)
+			end
+		end
+	end,
+
+	AddExternalJobXP = function(tier)
+		if Config.JobXP.enable then
+		local baseXP = Config.JobXP.reward
+			if Config.JobXP.useXPMultiplier then
+				baseXP = baseXP * Config.Tier.xpMultiplierTable["tier"..tier..""]
+			end
+			if Config.JobXP.script =='ak4y' then
+				TriggerServerEvent('ak4y-jobselector:addXP', baseXP)
+			elseif Config.JobXP.script =='custsom' then
+				--enter custom trigger event or export here.
+			end
+		end
 	end,
 
 	EmailNotification = function(id,data)
@@ -115,13 +159,25 @@ SS_Utils = {
 	end,
 
 	GetIdentification = function(data)
-		SS_Log("debug","^4GetIdentification ^0[^3"..PlayerPedId().."^0]", resourceName, true, currentLine.."59")
+		SS_Log("id_debug","^4GetIdentification ^0[^3"..PlayerPedId().."^0]", resourceName, currentLine.."59")
 		if Framework == "QB" then
 			return QBCore.Functions.GetPlayerData().citizenid
 		elseif Framework == "ESX" then
 			return ESX.PlayerData.identifier
 		end
-	end
+	end,
+
+	CustomJsonTable = function(tbl)
+    local result = "\n"
+    for key, value in pairs(tbl) do
+        if next(tbl, key) == nil then
+            result = result.."[^5"..key.."^0] [^3" .. tostring(value) .. "^0"
+        else
+            result = result.."[^5"..key.."^0] [^3" .. tostring(value) .. "^0]\n"
+        end
+    end
+        return result
+    end,
 }
 
 RegisterNetEvent('ss_lib:bridge:utilities:notification', function(msg)
