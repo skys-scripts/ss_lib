@@ -1,4 +1,4 @@
-local resourceName = GetCurrentResourceName()
+local resourceName = GetInvokingResource()
 local currentLine = "CLNT>UTIL #"
 
 if Framework == 'ESX' then
@@ -183,3 +183,9 @@ SS_Utils = {
 RegisterNetEvent('ss_lib:bridge:utilities:notification', function(msg)
     SS_Utils.Notification(msg)
 end)
+
+GetUtils = function()
+    return SS_Utils
+end
+
+exports('GetUtils', GetUtils)

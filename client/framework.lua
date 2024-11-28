@@ -1,6 +1,6 @@
 ESX = nil
 QBCore = nil
-local resourceName = GetCurrentResourceName()
+local resourceName = GetInvokingResource()
 local currentLine = "CLNT>FRAME #"
 
 if Framework == 'ESX' then
@@ -157,3 +157,9 @@ AddEventHandler(Config.Triggers[Framework].job, function(job)
     SS_Core.PlayerData.job = job
     SS_Core.SetPlayerJob()
 end)
+
+GetCore = function()
+    return SS_Core
+end
+
+exports('GetCore', GetCore)

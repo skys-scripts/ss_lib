@@ -1,4 +1,4 @@
-local resourceName = GetCurrentResourceName()
+local resourceName = GetInvokingResource()
 local currentLine = "SRVR>UTILS #"
 
 SS_Utils = {
@@ -212,3 +212,9 @@ RegisterNetEvent('ss_lib:server:ComplexDebug', function(resource, tbl)
     TablePrint(tbl, 0)
     print(('\x1b[4m\x1b[38;5;79m[ %s : END DEBUG]\x1b[0m'):format(string.upper(resource)))
 end)
+
+GetUtils = function()
+    return SS_Utils
+end
+
+exports('GetUtils', GetUtils)

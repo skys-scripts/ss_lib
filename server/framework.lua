@@ -1,6 +1,6 @@
 ESX = nil
 QBCore = nil
-local resourceName = GetCurrentResourceName()
+local resourceName = GetInvokingResource()
 local currentLine = "SRVR>FRAME #"
 
 if Framework == 'ESX' then
@@ -185,3 +185,9 @@ SS_Core.RegisterCallback("ss_lib:server:getPlayerName", function(source, cb, oID
     end
     cb(tostring(name.." ["..(oID or source).."]"))
 end)
+
+GetCore = function()
+    return SS_Core
+end
+
+exports('GetCore', GetCore)

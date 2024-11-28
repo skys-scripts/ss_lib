@@ -30,3 +30,9 @@ SS_Log = function(warntype, message, asset, isClient, location, ...)
     local formattedMessage = string.format(logFormat..extraInfo, table.concat({...}, ", ") or "")
     print(formattedMessage)
 end
+
+GetLog = function()
+    return SS_Log
+end
+
+exports('GetLog', GetLog)
